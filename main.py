@@ -1,15 +1,29 @@
-import bms
-
+import matplotlib.pyplot as plt
 from bms.signals.functions import Sinus
 from bms.blocks.continuous import ODE
+from bms.core import Variable, DynamicSystem
 
-K = 1
-Q = 0.3
-w0 = 3
 
-# e=bms.Step('e',4.)
-e = Sinus('e', 4., 5)
-s = bms.Variable('s', [0])
+sine_signal = Sinus(name='SineWave', amplitude=1.0, w=2*3.1415, phase=0, offset=0)
 
-block = ODE(e, s, [1], [1, 2*Q/w0, 1/w0**2])
-ds = bms.DynamicSystem(5, 200, [block])
+output = Variable('output')
+amplified = Variable('amplified')
+block = ODE(sine_signal, output, [1], [1])
+
+gain_blk = ODE(sine_signal, amplified,[5.0],[1])
+
+model = DynamicSystem(2, 100, [block])
+
+model_gain = DynamicSystem(2,100,[gain_blk])
+
+model_gain.Simulate()
+
+model.Simulate()
+plt.plot(model_gain.t, sine_signal.values, label='Sine Input')
+plt.plot(model_gain.t, output.values, label='Output')
+plt.xlabel('Time (s)')
+plt.ylabel('Amplitude')
+plt.title('Sinewave Simulation using BMSpy')
+plt.legend()
+plt.grid(True)
+plt.show()
